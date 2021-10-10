@@ -8,7 +8,7 @@ output: github_document
 ```{r}
 library(tidyverse)
 library(readxl)
-
+library(dplyr)
 ```
 
 ## Question 1 
@@ -92,6 +92,7 @@ merged2_df = left_join(merged1_df, unemploy_df2, by=c("Year", "Month")
 ```
 
 ///Description on datasets///
+
 1. The cleaned data set pols_month_df2 has 822 observations and 9 variables. 
 The year range is from 1947-2015. 
 Key variables include: Year, Month, President. 
@@ -107,6 +108,69 @@ Key variables include: Year, Month, Unemployment rate.
 4. The final merged data set merged2_df has 822 observations and 11 variables. 
 The year range is from 1947-2015. 
 Key variables include: Year, Month, President, close, Unemployment rate. 
+
+## Question 3
+_Import and Clean data_
+```{r}
+babyname_df = read.csv("./Popular_Baby_Names.csv") %>%
+              janitor::clean_names() %>%
+              mutate(child_s_first_name = str_to_sentence(child_s_first_name), 
+                      ethnicity = str_to_sentence(ethnicity), 
+                      ethnicity = recode (
+                        ethnicity, 
+                        "Asian and paci" = "Asian and pacific islander", 
+                        "Black non hisp" = "Black non hispanic", 
+                        "White non hisp" = "White non hispanic")
+                     ) %>%
+  distinct()
+```
+
+_Create table for Olivia_
+```{r}
+olivia_df = babyname_df %>%
+  filter(child_s_first_name == "Olivia") %>%
+  select(c(year_of_birth, rank, ethnicity)) %>%
+  pivot_wider( names_from = "year_of_birth", 
+               values_from = "rank")
+```
+
+```{r}
+olivia_df = olivia_df[,c("ethnicity", "2011", "2012", "2013", "2014", "2015", "2016")]
+```
+
+```{r}
+olivia_df
+```
+
+_Create table for male name_
+```{r}
+male_name = babyname_df %>%
+  filter(gender == "MALE" & rank == "1") %>%
+  select(c(year_of_birth, child_s_first_name, ethnicity)) %>%
+  pivot_wider( names_from = "year_of_birth", 
+               values_from = "child_s_first_name")
+```
+
+```{r}
+male_name = male_name[,c("ethnicity", "2011", "2012", "2013", "2014", "2015", "2016")]
+```
+
+```{r}
+male_name
+```
+
+_Scatter plot_
+```{r}
+plot_df = babyname_df %>%
+  filter(gender == "MALE" & ethnicity == "White non hispanic" & year_of_birth == "2016")
+```
+
+```{r}
+ggplot(plot_df, aes(x=rank, y=count))+ geom_point()
+```
+
+
+
 
 
 
